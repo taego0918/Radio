@@ -5,12 +5,17 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 let connectionNum = 0;
 let OPDate = [];
+let videoList = [
+        {video_id: '4z9o8GwxBz8', user:'TaeGo'},
+        // {video_id: 'NrHRTNeni-U', user:'TaeGo'}
+    ];
 let hashName = new Array();
 io.on('connection', (socket) => {
     connectionNum++;
     socket.on('connectNum',(name)=>{
         hashName[name] = socket;
         io.emit('connectNum',connectionNum);
+        io.emit('videoList',videoList);
     });
     socket.on('gamerData',(obj)=>{
         let isContain = false;
@@ -32,31 +37,15 @@ io.on('connection', (socket) => {
             msg : obj.msg,
             time: getTime
         }
-        if(obj.type === 'public'){
-            io.emit("message", returnData);
-        }else{
-            let toSocket = hashName[obj.object];
-            if(toSocket){
-                toSocket.emit('message',returnData);
-            }
-        }
+        io.emit("message", returnData);
     });
     socket.on('disconnect',()=>{
         connectionNum--;
         io.emit('connectNum', connectionNum);
     });
+    socket.on('addSong',(obj)=>{
+        io.emit('videoList',[obj]);
+    });
 });
-
-const puppeteer = require('puppeteer');
-
-(async () => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto('https://www.google.com/search?q=%E3%80%90HD%E3%80%91UNNATURAL+-+%E7%B1%B3%E6%B4%A5%E7%8E%84%E5%B8%AB+-+Lemon%E3%80%90%E4%B8%AD%E6%97%A5%E5%AD%97%E5%B9%95%E3%80%91&tbm=isch');
-    let body = await page.content()
-    let $ = await cheerio.load(body)
-
-    await browser.close();
-})();
 
 server.listen(8092);

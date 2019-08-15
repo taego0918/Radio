@@ -9,8 +9,8 @@ app.get('/', function(req, res) {
     res.sendFile( __dirname + "/public/" + "index.html" );
 });
 
-app.get('/youtube', function(req, res) {
-    res.sendFile( __dirname + "/public/" + "youtube.html" );
+app.get('/video', function(req, res) {
+    res.sendFile( __dirname + "/public/" + "video.html" );
 });
 
 app.use(express.static(__dirname + '/public'));

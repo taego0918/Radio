@@ -101,11 +101,15 @@ background: #555;
     right: 0;
     bottom: 0;
     width: 360px;
+    z-index: 5;
 }
 .chatroom .top{
     height: 20px;
     width: 100%;
     margin: 5px;
+    color: #ffffff;
+    z-index: 37;
+    position: absolute;
 }
 .chatroom .version{
     position: absolute;
@@ -131,12 +135,12 @@ background: #555;
     top: 0px;
     left: 0px;
     /* padding: 10px 5px; */
-    height:100vh;
+    height: 100vh;
     width: 500px;
-    background: #eee;
-    opacity: 0.1;
+    background: #000;
+    opacity: 0.8;
     position: absolute;
-    overflow:hidden;
+    overflow: hidden;
 }
 
 .chats .chat {

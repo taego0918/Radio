@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <head>
-    <title>荼壺電台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TaeGo Video</title>
     <link rel="stylesheet" type="text/css" href="video.css" />
 </head>
     <body>
         <div class="add-song-bg">
             <div class="song-box">
-                <input id="song-url" type="text" placeholder="輸入您想播放的youtube網址">
+                <br/>
+                <div class="exit"></div>
+                <input id="song-url" type="text" placeholder="貼上想播放的youtube網址">
                 <button class="send-song">送出</button>
+                <h2 class="title">點播教學</h2>
+                <h3>貼上您想播放的youtube歌曲完整網址後按下送出</h3>
+                <img src="url.jpg">
+                <h2 class="title">點播需知</h2>
+                <h3>此頻道以分享音樂為主，若想播放影片請使用其它平台。</h3>
+                <h3>為避免曲風過於單調，請儘量少貼時間過長的組曲。</h3>
+                <h3>在送出前請先確認此影片不含廣告，避免造成其它人的困擾。</h3>
             </div>
         </div>
-
+        <div id="server-message"></div>
         <div class="chatroom">
             <div class="add-song">點播</div>
             <div class="top">在線人數:<span class="connect-num">0</span>
@@ -25,6 +35,7 @@
         </div>
 
         <div id="player"></div>
+        <div id="testPlayer"></div>
 
         <div class="video-data">
             <div id="user"></div>
@@ -42,27 +53,31 @@
         
         <script src="js/socket.io.js"></script>
         <script>
-            let socket      = io.connect('http://192.168.1.128:8092', { 'reconnect': true }),
-                chats       = document.getElementsByClassName('chats')[0],
-                connectNum  = document.getElementsByClassName('connect-num')[0],
-                send        = document.getElementById('send'),
-                tag         = document.createElement('script'),
-                volume      = document.getElementById('volume'),
-                title       = document.getElementById('title'),
-                author      = document.getElementById('author'),
-                img         = document.getElementById('img'),
-                bg          = document.getElementById('bg'),
-                songUrl     = document.getElementById('song-url'),
-                user        = document.getElementById('user'),
-                addSong     = document.getElementsByClassName('add-song')[0],
-                songBox     = document.getElementsByClassName('song-box')[0],
-                addSongBg   = document.getElementsByClassName('add-song-bg')[0],
-                sendSong    = document.getElementsByClassName('send-song')[0];
+            let socket          = io.connect('http://192.168.1.128:8092', { 'reconnect': true }),
+                chats           = document.getElementsByClassName('chats')[0],
+                connectNum      = document.getElementsByClassName('connect-num')[0],
+                send            = document.getElementById('send'),
+                tag             = document.createElement('script'),
+                volume          = document.getElementById('volume'),
+                title           = document.getElementById('title'),
+                author          = document.getElementById('author'),
+                img             = document.getElementById('img'),
+                bg              = document.getElementById('bg'),
+                songUrl         = document.getElementById('song-url'),
+                user            = document.getElementById('user'),
+                addSong         = document.getElementsByClassName('add-song')[0],
+                songBox         = document.getElementsByClassName('song-box')[0],
+                addSongBg       = document.getElementsByClassName('add-song-bg')[0],
+                sendSong        = document.getElementsByClassName('send-song')[0],
+                exit            = document.getElementsByClassName('exit')[0],
+                serverMessage   = document.getElementById('server-message');
+
+            let isEnd = true;
 
                 tag.src = "https://www.youtube.com/iframe_api";
             let firstScriptTag = document.getElementsByTagName('script')[0];
                 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            let videoData , player , videoId,videoList = [];
+            let videoData , player ,testPlayer, videoId,videoList = [];
 
             addSong.addEventListener('click',(e)=>{
                 addSongBg.style.display = 'block';
@@ -70,6 +85,9 @@
 
             addSongBg.addEventListener('click',(e)=>{
                 e.stopPropagation();
+            })
+
+            exit.addEventListener('click',(e)=>{
                 addSongBg.style.display = 'none';
             })
 
@@ -87,63 +105,142 @@
             sendSong.addEventListener('click',(e)=>{
                 e.preventDefault();
                 let returnData = chkYoutubeUrl(songUrl.value);
+
                 if(!returnData){
                 }else{
-                    
-                    socket.emit('addSong',{video_id: returnData , user: localStorage.getItem('name')});
-                    addSongBg.style.display = 'none';
+                    testPlayer.loadVideoById(returnData);
+                    testPlayer.playVideo();
                 }
             })
-
+            
             function chkYoutubeUrl(_data){
                 let text = _data , returnData ,startNum;
                 if (!text) {return;}
-                if (text.indexOf('youtube') == -1){return;}
+                if (text.indexOf('youtube') == -1){
+                    showServerMessage('網址格式錯誤，請重新再試','fail');
+                    return;
+                }
                     startNum = text.indexOf('v=');
-                if(startNum == -1 ){return;}
+                if(startNum == -1 ){
+                    showServerMessage('網址格式錯誤，請重新再試','fail');
+                    return;
+                }
                     returnData = text.substr( startNum + 2 , 11 );
-                if(returnData.length !== 11 ){return;}
+                if(returnData.length !== 11 ){
+                    showServerMessage('網址格式錯誤，請重新再試','fail');
+                    return;
+                }
                 return returnData;
             }
 
             function onYouTubePlayerAPIReady() {
-                videoId = videoList[0].video_id;
-                user.innerHTML = '點播者:'+videoList[0].user;
-
-                videoList.splice(0, 1);
-
                 player = new YT.Player('player', {
                     height  : '0',
                     width   : '0',
-                    videoId : videoId,
+                    videoId : '',
                     events  : {
                                 'onReady'       : onPlayerReady,
                                 'onStateChange' : onPlayerStateChange,
                                 'onError'       : onError
                             }
                 });
-                console.log(player);
+
+                testPlayer = new YT.Player('testPlayer', {
+                    height  : '0',
+                    width   : '0',
+                    videoId : '',
+                    events  : {
+                                'onStateChange' : testPlayerStateChange,
+                                'onError'       : testError
+                            }
+                });
             }
-            function nextSong(){
+            function nextSong(_startSeconds){
+                let startSeconds = _startSeconds || 0;
                 if(videoList.length === 0){
-                    alert('end');
-                    return;
+                    user.innerHTML = '';
+                    bg.style.backgroundImage    = '';
+                    img.style.backgroundImage   = '';
+                    title.innerHTML             = '歌曲已點播完畢，請再點播新歌曲！';
+                    author.innerHTML            = '';
+                    isEnd = true;
+                }else{
+                    videoId = videoList[0].video_id;
+                    user.innerHTML = '點播者:'+videoList[0].user;
+                    videoList.splice(0, 1);
+                    player.loadVideoById({
+                        videoId         : videoId,
+                        startSeconds    : startSeconds });
+                    player.playVideo();
                 }
-                videoId = videoList[0].video_id;
-                user.innerHTML = '點播者:'+videoList[0].user;
-                videoList.splice(0, 1);
-                player.loadVideoById(videoId);
-                player.playVideo();
+            }
+
+            
+            function showServerMessage(_data,_type){
+                serverMessage.innerHTML = _data;
+                switch(_type){
+                    case 'success':
+                        serverMessage.className = 'success';
+                        break;
+                    case 'fail':
+                        serverMessage.className = 'fail';
+                        break;
+                    default:
+                        break;
+                }
+                songUrl.value = '';
+                serverMessage.style.display = 'block';
+
+                setTimeout(function(){
+                    serverMessage.style.display = 'none';
+                },5000)
+            }
+            function showVideoList(){
+                console.log(videoList);
+            }
+            function testError(event){
+                switch(event.data){
+                    case 150:
+                    case 101:
+                        showServerMessage('此影片所有者不允許嵌入式播放器中播放','fail');
+                        break;
+                    case 100:
+                        showServerMessage('此影片已被刪除','fail');
+                        break;
+                    default:
+                        showServerMessage('影片發生錯誤,無法播放','fail');
+                        break;
+                }
+            }
+
+            function testPlayerStateChange(event) {
+                switch(event.data){
+                    case -1:
+                        break;
+                    case 0://結束
+                        break;
+                    case 1:
+                        testPlayer.stopVideo();
+                        let testPlayerData = testPlayer.getVideoData();
+                        socket.emit('addSong',{video_id: testPlayerData.video_id , user: localStorage.getItem('name'),second:testPlayer.getDuration()});
+                        addSongBg.style.display = 'none';
+                        showServerMessage(testPlayerData.title+'   點播成功','success');
+                        break;
+                    case 3:
+                        break;
+                    default:
+                        break;
+                }
             }
 
             function onError(event){
-                console.log(event);
                 nextSong();
             }
 
             function onPlayerReady(event) {
-                event.target.playVideo();
+                // event.target.playVideo();
                 volume.value = event.target.getVolume();
+                youName();
             }
 
             function onPlayerStateChange(event) {
@@ -162,22 +259,25 @@
                         author.innerHTML            = videoData.author;
                         break;
                     case 3:
+                        player.playVideo();
                         break;
                     default:
                         break;
                 }
             }
-
-        if(localStorage.getItem('name') === null){
-            let person = prompt("请输入您的名字：");
-            if (person == null || person == "") {
-                youName();
-            } else {
-                localStorage.setItem("name", person );
+        
+        function youName(){
+            if(localStorage.getItem('name') === null){
+                let person = prompt("请输入您的暱稱：");
+                if (person == null || person == "") {
+                    youName();
+                } else {
+                    localStorage.setItem("name", person );
+                    socket.emit('connectNum',localStorage.getItem('name'));
+                }
+            }else{
                 socket.emit('connectNum',localStorage.getItem('name'));
             }
-        }else{
-            socket.emit('connectNum',localStorage.getItem('name'));
         }
 
         send.addEventListener('click', () => {
@@ -188,9 +288,20 @@
         })
 
         socket.on('videoList',data =>{
+            if(data.length === 0){
+                title.innerHTML = '歌曲已點播完畢，請再點播新歌曲！';
+                return;
+            }
             for(let item = 0; item < data.length;item++){
                 videoList.push(data[item]);
             }
+            if(isEnd){
+                let getDate = new Date();
+                let endTime = new Date(videoList[0].endTime);
+                let startSeconds = videoList[0].second - (endTime.getTime() - getDate.getTime())/1000;
+                nextSong(startSeconds);
+            }
+            isEnd = false;
         })
 
         socket.on('message', data => {
@@ -198,15 +309,15 @@
             let htmlData =  '<div class="chat">'+
                             '<div class="group">'+
                             '<div class="name">'+data.name+'：</div>'+
-                            '<div class="msg">'+data.msg+'</div>'+
+                            '<div class="msg">'+data.msg+
+                            '<span class="time">'+
+                            (dt.getMonth()+1)+'/'+
+                            dt.getDate()+' '+
+                            dt.getHours()+':'+
+                            dt.getMinutes()+':'+
+                            dt.getSeconds()+
+                            '</span>'+    
                             '</div>'+
-                            '<div class="time">'+
-                                dt.getFullYear()+'/'+
-                                (dt.getMonth()+1)+'/'+
-                                dt.getDate()+' '+
-                                dt.getHours()+':'+
-                                dt.getMinutes()+':'+
-                                dt.getSeconds()+
                             '</div>'+
                             '</div>';
             chats.innerHTML += htmlData;

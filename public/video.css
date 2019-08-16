@@ -5,6 +5,53 @@ body{
     font: 16px "Lucida Grande", Helvetica, Arial, sans-serif;
     color: #ffffff;
 }
+/* width */
+::-webkit-scrollbar {
+width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+background: #f1f1f1; 
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+background: #555; 
+}
+
+#server-message{
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    font-size: 20px;
+    padding: 0px 20px;
+    font-weight: bold;
+    border-radius: 10px;
+    z-index: 200;
+    display: none;
+    transition-property: display;
+    transition-duration: 1s;
+}
+
+.success{
+    border: 2px solid #508053; 
+}
+
+.fail{
+    border: 2px solid #ff1b1b; 
+}
+
 #bg{
     background-color: #000000;
     background-size: cover;
@@ -75,10 +122,10 @@ body{
     left: 0px;
     padding: 10px 0px 0px 0px;
     height: calc( 100vh - 70px);
-    width: 380px;
+    width: 360px;
     position: absolute;
     z-index: 1;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 .chats-BG {
     top: 0px;
@@ -100,7 +147,7 @@ body{
     word-break: break-all;
 }
 .chats .chat .group {
-    display: inherit;
+    /* display: inherit; */
     word-wrap: normal;
 }
 
@@ -108,11 +155,16 @@ body{
     padding: 0 10px;
     font-weight: bold;
 }
-
+.chats .chat .msg {
+    font-weight: bold;
+    padding: 0px 10px;
+}
 .chats .chat .time {
     padding-left: 10px;
     font-size: 10px;
     line-height: 18px;
+    font-style: italic;
+    font-weight: normal;
 }
 .message {
     right: 0px;
@@ -145,7 +197,11 @@ body{
 .message button:hover {
     background-color: #ff0008;
 }
-
+#song-url{
+    height: 30px;
+    width: 400px;
+    padding-left: 10px;
+}
 .add-song{
     z-index: 1;
     background-color: #f8343b;
@@ -162,20 +218,72 @@ body{
     cursor: pointer;
 }
 
-.song-box{
-    background-color: #aaaaaa;
-    width: 500px;
-    height: 500px;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    border-radius: 20px;
-    transform: translate(-50%,-50%);
-}
-
 .add-song:hover{
     background-color: #fa0008;
     border-color: #fa0008;
+}
+
+.song-box{
+    background-color: #ffffff;
+    width: 500px;
+    height: 420px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    border-radius: 10px;
+    transform: translate(-50%,-50%);
+    color: #333333;
+    /* text-align: center; */
+    padding: 20px;
+}
+
+.song-box .exit{
+    background-image: url(x.png);
+    background-size: 100%;
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    cursor: pointer;
+    opacity: 0.5;
+}
+.song-box .exit:hover{
+    opacity: 1;
+}
+
+.song-box .title{
+    border-bottom: 1px solid #cccccc;
+    width: 90%;
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+    color: #ff2d2d;
+}
+
+.song-box img{
+    border:1px solid #333333;
+    width: 90%;
+    margin: 0px 5%;
+}
+
+.song-box .send-song{
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #f8343b;
+    border-color: #f72830;
+    border-radius: 16px;
+    line-height: 30px;
+    height: 40px;
+    width: 70px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+}
+
+.song-box .send-song:hover{
+    background-color: #fa0008;
+    border-color: #fa0008;    
 }
 
 .add-song-bg{

@@ -6,7 +6,7 @@ const server    = require('http').Server(app);
 const io        = require('socket.io')(server);
 
 app.get('/', function(req, res) {
-    res.sendFile( __dirname + "/public/" + "index.html" );
+    res.sendFile( __dirname + "/public/" + "video.html" );
 });
 
 app.get('/video', function(req, res) {

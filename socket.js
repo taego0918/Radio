@@ -5,17 +5,40 @@ const server = require('http').Server(app);
 const io = require('socket.io')(server);
 let connectionNum = 0;
 let OPDate = [];
+let bootTime = new Date();
 let videoList = [
-        {video_id: '4z9o8GwxBz8', user:'TaeGo'},
-        // {video_id: 'NrHRTNeni-U', user:'TaeGo'}
+        { video_id: '4z9o8GwxBz8', user: 'TaeGo', second: 279.001 },
+        { video_id: 'NrHRTNeni-U', user: 'TaeGo', second: 253.021 },
+        { video_id: 'Gp6XKEE8B2E', user: 'TaeGo', second: 209.821 },
+        { video_id: 'ostW9oAsO24', user: 'TaeGo', second: 251.861 },
     ];
+
+    Date.prototype.addSecond = function(second) {
+        var dat = new Date(this.valueOf());
+        dat.setSeconds(dat.getSeconds() + second);
+        return dat
+    }
+let CumulativeTime = bootTime
+for(let item = 0; item < videoList.length; item++){
+    CumulativeTime = CumulativeTime.addSecond(videoList[item].second);
+    videoList[item].endTime = CumulativeTime;
+}
+
 let hashName = new Array();
 io.on('connection', (socket) => {
     connectionNum++;
     socket.on('connectNum',(name)=>{
         hashName[name] = socket;
         io.emit('connectNum',connectionNum);
-        io.emit('videoList',videoList);
+        let data = [];
+        let getTime = new Date();
+
+        for(let item = 0; item < videoList.length; item++){
+            if(getTime < videoList[item].endTime ){
+                data.push(videoList[item]);
+            }
+        }
+        socket.emit('videoList',data);
     });
     socket.on('gamerData',(obj)=>{
         let isContain = false;
@@ -44,7 +67,11 @@ io.on('connection', (socket) => {
         io.emit('connectNum', connectionNum);
     });
     socket.on('addSong',(obj)=>{
-        io.emit('videoList',[obj]);
+        let data = obj;
+        let getTime = new Date();
+        data.endTime = getTime.addSecond(obj.second);
+        io.emit('videoList',[data]);
+        videoList.push(data);
     });
 });
 
